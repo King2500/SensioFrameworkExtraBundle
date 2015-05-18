@@ -156,19 +156,67 @@ class DoctrineParamConverterTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($object, $request->attributes->get('arg'));
     }
 
-    public function testUsedProperIdentifier()
+    public function testUsedProperIdentifier1()
     {
         $request = new Request();
         $request->attributes->set('id', 1);
-        $request->attributes->set('entity_id', null);
         $request->attributes->set('arg', null);
 
-        $config = $this->createConfiguration('stdClass', array('id' => 'entity_id'), 'arg', null);
+        $config = $this->createConfiguration('stdClass', array(), 'arg', null);
+
+        $manager = $this->getMock('Doctrine\Common\Persistence\ObjectManager');
+        $objectRepository = $this->getMock('Doctrine\Common\Persistence\ObjectRepository');
+        $this->registry->expects($this->once())
+              ->method('getManagerForClass')
+              ->with('stdClass')
+              ->will($this->returnValue($manager));
+
+        $manager->expects($this->once())
+            ->method('getRepository')
+            ->with('stdClass')
+            ->will($this->returnValue($objectRepository));
+
+        $objectRepository->expects($this->once())
+                      ->method('find')
+                      ->with($this->equalTo(1))
+                      ->will($this->returnValue($object = new \stdClass()));
 
         $ret = $this->converter->apply($request, $config);
 
         $this->assertTrue($ret);
-        $this->assertNull($request->attributes->get('arg'));
+        $this->assertEquals($object, $request->attributes->get('arg'));
+    }
+
+    public function testUsedProperIdentifier2()
+    {
+        $request = new Request();
+        $request->attributes->set('id', 1);
+        $request->attributes->set('entity_id', 2);
+        $request->attributes->set('arg', null);
+
+        $config = $this->createConfiguration('stdClass', array('id' => 'entity_id'), 'arg', null);
+
+        $manager = $this->getMock('Doctrine\Common\Persistence\ObjectManager');
+        $objectRepository = $this->getMock('Doctrine\Common\Persistence\ObjectRepository');
+        $this->registry->expects($this->once())
+              ->method('getManagerForClass')
+              ->with('stdClass')
+              ->will($this->returnValue($manager));
+
+        $manager->expects($this->once())
+            ->method('getRepository')
+            ->with('stdClass')
+            ->will($this->returnValue($objectRepository));
+
+        $objectRepository->expects($this->once())
+                      ->method('find')
+                      ->with($this->equalTo(2))
+                      ->will($this->returnValue($object = new \stdClass()));
+
+        $ret = $this->converter->apply($request, $config);
+
+        $this->assertTrue($ret);
+        $this->assertEquals($object, $request->attributes->get('arg'));
     }
 
     public function idsProvider()

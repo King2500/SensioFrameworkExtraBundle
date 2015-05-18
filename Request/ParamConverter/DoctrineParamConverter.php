@@ -111,11 +111,11 @@ class DoctrineParamConverter implements ParamConverterInterface
             }
         }
 
-        if ($request->attributes->has($name)) {
+        if ($request->attributes->has($name) && $name != 'id' && (isset($options['id']) || !$request->attributes->has('id'))) {
             return $request->attributes->get($name);
         }
 
-        if ($request->attributes->has('id') && !isset($options['id'])) {
+        if ($request->attributes->has('id') && (!isset($options['id']) || $options['id'] == 'id')) {
             return $request->attributes->get('id');
         }
 
